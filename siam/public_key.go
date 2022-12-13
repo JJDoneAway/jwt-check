@@ -1,9 +1,7 @@
-package oauth
+package siam
 
 import (
 	"bytes"
-	"crypto"
-	"crypto/rsa"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
@@ -15,28 +13,25 @@ import (
 )
 
 /*
-In here you'll find the offline check if a jwt access_token was signed from SIAM
+In here we implement the management of the SIAM public keys
 
-1. we use the public key in form of modulo and exponent provided via the SIAM key endpoint
-2. we check if the decoded signature is exactly the same as the header and payload part
-
-Hint:
-The public key must be downloaded continuously as it will be generated in fixed intervals.
-*/
+They will be reloaded from the SIAM endpoint in fixed intervals, to get new generated ones.
 
 // location of the SIAM key endpoint
 // https://itdoc.schwarz/display/IAM/SIAM+IDP+Endpoints
+*/
 const jwksURL string = "https://federation.auth.schwarz/nidp/oauth/nam/keys"
 
 var (
-	myPublicKey Verifier
+	myPublicKey PublicKey
 )
 
 // keep modulo and exponent
-type Verifier struct {
-	mod        big.Int
-	exp        int
-	lastUpdate int64
+type PublicKey struct {
+	Modulo     big.Int
+	Exponent   int
+	LastUpdate int64
+	JwksURL    string
 }
 
 // JSON element for a single public key
@@ -53,20 +48,8 @@ type Keys struct {
 }
 
 // constructor to keep a instance with an always valid public key
-func NewVerifier() (*Verifier, error) {
+func NewPublicKey() (*PublicKey, error) {
 	return &myPublicKey, nil
-}
-
-func (v Verifier) Verify(jwt Jwt) error {
-
-	// Calculate public key with help of modulo and exponent
-	publicKey := &rsa.PublicKey{N: &v.mod, E: v.exp}
-	// Sign the hash of the message
-	sha256Hasher := crypto.SHA256.New()
-	sha256Hasher.Write(jwt.Message)
-
-	return rsa.VerifyPKCS1v15(publicKey, crypto.SHA256, sha256Hasher.Sum(nil), jwt.Signature)
-
 }
 
 // must be refactored to auto reload the key every hour in the background
@@ -85,7 +68,7 @@ func init() {
 	if ok != nil {
 		manageError(fmt.Errorf("jwt verification error: It was not possible convert modulo string into byte array. Error was: '%s'", ok))
 	}
-	myPublicKey.mod.SetBytes(n)
+	myPublicKey.Modulo.SetBytes(n)
 
 	e, ok := base64.RawURLEncoding.DecodeString(values.Keys[0].Exp)
 	if ok != nil {
@@ -94,9 +77,9 @@ func init() {
 	var bufferExp bytes.Buffer
 	bufferExp.WriteByte(0)
 	bufferExp.Write(e)
-	myPublicKey.exp = int(binary.BigEndian.Uint32(bufferExp.Bytes()))
+	myPublicKey.Exponent = int(binary.BigEndian.Uint32(bufferExp.Bytes()))
 
-	myPublicKey.lastUpdate = time.Now().Unix()
+	myPublicKey.LastUpdate = time.Now().Unix()
 	fmt.Printf("Updated public SIAM key at %v\n", time.Now())
 }
 
