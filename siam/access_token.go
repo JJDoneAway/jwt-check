@@ -1,4 +1,4 @@
-package oauth
+package siam
 
 import (
 	"encoding/base64"
@@ -8,7 +8,7 @@ import (
 )
 
 /*
-This object will keep a SIAM JWT access token.
+This object will represent a SIAM JWT access token.
 */
 
 type Jwt struct {
