@@ -79,6 +79,8 @@ func init() {
 	bufferExp.Write(e)
 	myPublicKey.Exponent = int(binary.BigEndian.Uint32(bufferExp.Bytes()))
 
+	myPublicKey.JwksURL = jwksURL
+
 	myPublicKey.LastUpdate = time.Now().Unix()
 	fmt.Printf("Updated public SIAM key at %v\n", time.Now())
 }

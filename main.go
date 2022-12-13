@@ -27,6 +27,12 @@ func main() {
 	if ok = jwt.VerifySignature(key); ok == nil {
 		fmt.Println("Your SIAM JWT access token is signed correct")
 	} else {
-		fmt.Printf("You SIAM JWT access token is not valid. Error was %s\n", ok)
+		fmt.Printf("You SIAM JWT access token is not valid. Error was '%s'\n", ok)
+	}
+
+	if ok = jwt.ValidatePayload(); ok == nil {
+		fmt.Println("Your SIAM JWT access token has valid attributes")
+	} else {
+		fmt.Printf("You SIAM JWT access token has invalid attributes. Error was '%s'\n", ok)
 	}
 }

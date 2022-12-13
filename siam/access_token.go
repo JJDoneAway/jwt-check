@@ -10,7 +10,6 @@ import (
 /*
 This object will represent a SIAM JWT access token.
 */
-
 type Jwt struct {
 	Header  Header
 	Payload Payload
