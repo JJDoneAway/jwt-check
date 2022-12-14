@@ -36,12 +36,18 @@ func main() {
 	jwt.Payload.Exp = time.Now().Unix() + 10*60
 
 	if ok = jwt.ValidatePayload(); ok == nil {
-		fmt.Println("Your SIAM JWT access token has valid attributes")
+		fmt.Println("Your SIAM JWT access token has just valid attributes")
 	} else {
 		fmt.Printf("You SIAM JWT access token has invalid attributes. Error was '%s'\n", ok)
 	}
 
 	user := jwt.GetUser()
 
-	fmt.Print(user)
+	fmt.Printf("Name:\t\t%s\n", user.Name)
+	fmt.Printf("Mail:\t\t%s\n", user.Email)
+	fmt.Printf("Uid:\t\t%s\n", user.Uid)
+	fmt.Printf("a random role:\t%s\n", user.Roles[10])
+
+	fmt.Printf("Has the user the role 'snyk-xx-sit-odj-apienablement-adm'? %v\n", user.HasRole("snyk-xx-sit-odj-apienablement-adm"))
+
 }

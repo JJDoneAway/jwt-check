@@ -1,7 +1,6 @@
 package siam
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -34,7 +33,6 @@ func (jwt Jwt) getSIAMRoles() []string {
 	ret := []string{}
 
 	for _, s := range jwt.Payload.GroupMembership {
-		fmt.Println(s)
 		res := regex.FindAllStringSubmatch(s, -1)
 		ret = append(ret, strings.TrimSpace(res[0][2]))
 	}
