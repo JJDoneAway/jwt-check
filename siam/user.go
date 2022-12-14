@@ -28,6 +28,7 @@ func (jwt Jwt) GetUser() User {
 }
 
 func (jwt Jwt) getSIAMRoles() []string {
+	//e.g.: "cn=snyk-xx-sit-odj-apienablement-adm,ou=snyk,ou=apps,o=global"
 	regex := *regexp.MustCompile(`(cn=)([^,]+)(,.*)`)
 
 	ret := []string{}
