@@ -16,6 +16,10 @@ In here we will do the jwt access token validation work
 
 */
 
+// the SIAM client (same as client id)
+// This will prove that the access token was issued by "your" SIAM client
+const aud = "9de0efb9-767e-453b-84fa-a3b0d76c97be"
+
 /*
 Will check that the decrypted signature is the same as header + payload
 */
@@ -40,13 +44,19 @@ Will validate the creation date and the expiry date. For SIAM this is enough as 
 func (jwt Jwt) ValidatePayload() error {
 	now := time.Now().Unix()
 
+	// access token must be created in the past
 	if jwt.Payload.Iat >= now {
 		return fmt.Errorf("jwt verification error: The access token was created in the future. was created '%v' but now we have '%v'", time.Unix(jwt.Payload.Iat, 0), time.Unix(now, 0))
 	}
 
-	//we add 10 minutes
-	if jwt.Payload.Exp < now+(60*10) {
-		return fmt.Errorf("jwt verification error: The access token already outdated. It was valid since but '%v' now we already have '%v'", time.Unix(jwt.Payload.Exp, 0), time.Unix(now, 0))
+	//access token must still be valid (we add 10 minutes)
+	if jwt.Payload.Exp+(60*10) < now {
+		return fmt.Errorf("jwt verification error: The access token already outdated. It was valid since '%v' but now we already have '%v'", time.Unix(jwt.Payload.Exp, 0), time.Unix(now, 0))
+	}
+
+	//access token must be created just for our application
+	if jwt.Payload.Aud != aud {
+		return fmt.Errorf("jwt verification error: The access token has the wrong audience. The audience of this token is '%s'", jwt.Payload.Aud)
 	}
 
 	return nil

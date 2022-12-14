@@ -20,7 +20,7 @@ They will be reloaded from the SIAM endpoint in fixed intervals, to get new gene
 // location of the SIAM key endpoint
 // https://itdoc.schwarz/display/IAM/SIAM+IDP+Endpoints
 */
-const jwksURL string = "https://federation.auth.schwarz/nidp/oauth/nam/keys"
+const JwksURL string = "https://federation.auth.schwarz/nidp/oauth/nam/keys"
 
 var (
 	myPublicKey PublicKey
@@ -54,7 +54,7 @@ func NewPublicKey() (*PublicKey, error) {
 
 // must be refactored to auto reload the key every hour in the background
 func init() {
-	response, err := http.Get(jwksURL)
+	response, err := http.Get(JwksURL)
 	manageError(err)
 
 	data, err := io.ReadAll(response.Body)
@@ -79,7 +79,7 @@ func init() {
 	bufferExp.Write(e)
 	myPublicKey.Exponent = int(binary.BigEndian.Uint32(bufferExp.Bytes()))
 
-	myPublicKey.JwksURL = jwksURL
+	myPublicKey.JwksURL = JwksURL
 
 	myPublicKey.LastUpdate = time.Now().Unix()
 	fmt.Printf("Updated public SIAM key at %v\n", time.Now())

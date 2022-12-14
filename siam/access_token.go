@@ -25,18 +25,24 @@ type Header struct {
 	Type string `json:"type"`
 }
 
-// the payload contains SIAM / SIT specific claims
+/*
+	 the payload contains SIAM / SIT specific claims
+		iss => who issued (created) this token
+		uid => resource owner id
+		aud => the audience of this token (the API)
+		groupMembership => SIAM roles in RAW Active Directory format
+		exp => until when is the token valid
+		iat => when was the token created
+*/
 type Payload struct {
-	// who issued (created) this token
-	Iss string `json:"iss"`
-	// resource owner id
-	Uid string `json:"uid"`
-	// SIAM roles in RAW format
+	Iss             string   `json:"iss"`
+	Uid             string   `json:"uid"`
+	FullName        string   `json:"fullName"`
+	Email           string   `json:"mail"`
+	Aud             string   `json:"aud"`
 	GroupMembership []string `json:"groupMembership"`
-	// until when is the token valid
-	Exp int64 `json:"exp"`
-	// when was the token created
-	Iat int64 `json:"iat"`
+	Exp             int64    `json:"exp"`
+	Iat             int64    `json:"iat"`
 }
 
 func DecodeJWT(jwt string) (Jwt, error) {

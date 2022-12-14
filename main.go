@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"jwt-check/siam"
+	"time"
 )
 
 // https://dev-ekwvp-wi.us.auth0.com/.well-known/jwks.json
@@ -14,6 +15,7 @@ var (
 	jwt siam.Jwt
 )
 
+// this function shows how to use and validat a access token
 func main() {
 	var ok error
 	if key, ok = siam.NewPublicKey(); ok != nil {
@@ -30,9 +32,19 @@ func main() {
 		fmt.Printf("You SIAM JWT access token is not valid. Error was '%s'\n", ok)
 	}
 
+	//fake a still valid one for test reasons
+	jwt.Payload.Exp = time.Now().Unix() + 10*60
+
+	// fake a wrong audiance for test reasons
+	// jwt.Payload.Aud = "jhdfjdfh"
+
 	if ok = jwt.ValidatePayload(); ok == nil {
 		fmt.Println("Your SIAM JWT access token has valid attributes")
 	} else {
 		fmt.Printf("You SIAM JWT access token has invalid attributes. Error was '%s'\n", ok)
 	}
+
+	user := jwt.GetUser()
+
+	fmt.Print(user)
 }
