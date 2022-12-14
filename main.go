@@ -35,9 +35,6 @@ func main() {
 	//fake a still valid one for test reasons
 	jwt.Payload.Exp = time.Now().Unix() + 10*60
 
-	// fake a wrong audiance for test reasons
-	// jwt.Payload.Aud = "jhdfjdfh"
-
 	if ok = jwt.ValidatePayload(); ok == nil {
 		fmt.Println("Your SIAM JWT access token has valid attributes")
 	} else {
