@@ -11,6 +11,8 @@ It download the public key from the jwks endpoint. The key is necessary for the 
 
 [public_key.go](./siam/public_key.go) 
 
+MIND: Currently the key is reloaded every second. for production every 5 hours should be enough 
+
 ##Convert JWT string into go slice
 ----------------------------------
 It will extract all necessary attributes out of the JWT raw string
