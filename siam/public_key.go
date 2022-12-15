@@ -5,10 +5,11 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"io"
+	"log"
 	"math/big"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -22,8 +23,15 @@ They will be reloaded from the SIAM endpoint in fixed intervals, to get new gene
 */
 const JwksURL string = "https://federation.auth.schwarz/nidp/oauth/nam/keys"
 
+// interval in seconds to reload the public key (Mind to set it to a realistic value)
+const reloadInterval time.Duration = 1
+
 var (
 	myPublicKey PublicKey
+	ErrorLogger = log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	client      = http.Client{
+		Timeout: 2 * time.Second,
+	}
 )
 
 // keep modulo and exponent
@@ -48,48 +56,61 @@ type Keys struct {
 }
 
 // constructor to keep a instance with an always valid public key
-func NewPublicKey() (*PublicKey, error) {
+func GetPublicKey() (*PublicKey, error) {
 	return &myPublicKey, nil
 }
 
 // must be refactored to auto reload the key every hour in the background
 func init() {
-	response, err := http.Get(JwksURL)
-	manageError(err)
+	loadKey(&myPublicKey)
+	go reload(&myPublicKey)
+}
+
+func reload(key *PublicKey) {
+	time.Sleep(reloadInterval * time.Second)
+	loadKey(key)
+	reload(key)
+}
+
+func loadKey(key *PublicKey) {
+	response, err := client.Get(JwksURL)
+	if err != nil {
+		ErrorLogger.Printf("Wasn't able to get the public key from '%s'. Error was: %v\n", myPublicKey.JwksURL, err)
+		return
+	}
 
 	data, err := io.ReadAll(response.Body)
-	manageError(err)
+	if err != nil {
+		ErrorLogger.Printf("Wasn't able to get the result out the response from '%s'. Error was: %v\n", myPublicKey.JwksURL, err)
+		return
+	}
 
 	var values Keys
 	err = json.Unmarshal(data, &values)
-	manageError(err)
+	if err != nil {
+		ErrorLogger.Printf("Wasn't able to unmarshal the public key from '%s'. Error was: %v\n", myPublicKey.JwksURL, err)
+		return
+	}
 
 	n, ok := base64.RawURLEncoding.DecodeString(values.Keys[0].Mod)
 	if ok != nil {
-		manageError(fmt.Errorf("jwt verification error: It was not possible convert modulo string into byte array. Error was: '%s'", ok))
+		ErrorLogger.Printf("jwt verification error: It was not possible convert modulo string into byte array. Error was: '%s'", ok)
+		return
 	}
-	myPublicKey.Modulo.SetBytes(n)
+	key.Modulo.SetBytes(n)
 
 	e, ok := base64.RawURLEncoding.DecodeString(values.Keys[0].Exp)
 	if ok != nil {
-		manageError(fmt.Errorf("jwt verification error: It was not possible convert exponent string into byte array. Error was: '%s'", ok))
+		ErrorLogger.Printf("jwt verification error: It was not possible convert exponent string into byte array. Error was: '%s'", ok)
+		return
 	}
 	var bufferExp bytes.Buffer
 	bufferExp.WriteByte(0)
 	bufferExp.Write(e)
-	myPublicKey.Exponent = int(binary.BigEndian.Uint32(bufferExp.Bytes()))
+	key.Exponent = int(binary.BigEndian.Uint32(bufferExp.Bytes()))
 
-	myPublicKey.JwksURL = JwksURL
+	key.JwksURL = JwksURL
 
-	myPublicKey.LastUpdate = time.Now().Unix()
-	fmt.Printf("Updated public SIAM key at %v\n", time.Now())
-}
-
-// Must be refactored into proper error handling
-func manageError(err error) {
-	if err != nil {
-		fmt.Println(err)
-		panic(err)
-	}
-
+	key.LastUpdate = time.Now().Unix()
+	log.Default().Printf("Updated public SIAM key at %v\n", time.Unix(key.LastUpdate, 0))
 }

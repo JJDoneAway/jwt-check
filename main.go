@@ -18,7 +18,7 @@ var (
 // this function shows how to use and validat a access token
 func main() {
 	var ok error
-	if key, ok = siam.NewPublicKey(); ok != nil {
+	if key, ok = siam.GetPublicKey(); ok != nil {
 		panic("Can't get SIAM public keys")
 	}
 
@@ -49,5 +49,16 @@ func main() {
 	fmt.Printf("a random role:\t%s\n", user.Roles[10])
 
 	fmt.Printf("Has the user the role 'snyk-xx-sit-odj-apienablement-adm'? %v\n", user.HasRole("snyk-xx-sit-odj-apienablement-adm"))
+
+	for i := 0; i < 100; i++ {
+		time.Sleep(2 * time.Second)
+		fmt.Printf("Varify JWT with public key updated at: %v. Pointer to key is %p\n", time.Unix(key.LastUpdate, 0), key)
+		if ok = jwt.VerifySignature(key); ok == nil {
+			fmt.Println("Your SIAM JWT access token is signed correct")
+		} else {
+			fmt.Printf("You SIAM JWT access token is not valid. Error was '%s'\n", ok)
+		}
+
+	}
 
 }
