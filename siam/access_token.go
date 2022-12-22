@@ -17,6 +17,8 @@ type Jwt struct {
 	Message []byte
 	//Signature as decoded string
 	Signature []byte
+	//the original token
+	Token string
 }
 
 // Just the important header fields
@@ -47,6 +49,7 @@ type Payload struct {
 
 func DecodeJWT(jwt string) (Jwt, error) {
 	var ret Jwt
+	ret.Token = jwt
 	tokenParts := strings.Split(jwt, ".")
 	if len(tokenParts) != 3 {
 		return ret, fmt.Errorf("jwt verification error: JWT access_token string must contain out of three parts, separated with dots. We found %d parts", len(tokenParts))

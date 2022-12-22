@@ -13,7 +13,7 @@ It download the public key from the jwks endpoint. The key is necessary for the 
 
 MIND: Currently the key is reloaded every second. for production every 5 hours should be enough 
 
-##Convert JWT string into go slice
+## Convert JWT string into go slice
 ----------------------------------
 It will extract all necessary attributes out of the JWT raw string
 
@@ -32,6 +32,21 @@ It will extract all necessary attributes out of the JWT raw string
 * Role management is implemented in here
 
 [user.go](./siam/user.go)
+
+## JWT token introspection
+--------------------------
+### Links
+* Token Introspection definition: https://www.oauth.com/oauth2-servers/token-introspection-endpoint/
+* SIAM specific description of the token introspection: https://itdoc.schwarz/display/IAM/Token+Introspect+Endpoint
+* Find all needed SIAM URLS here: https://itdoc.schwarz/display/IAM/SIAM+IDP+Endpoints
+* Isolated test for JWT validation: https://github.com/JJDoneAway/jwt-check
+
+### Example token introspection in SIAM
+```
+curl -X POST "https://federation.auth.schwarz/nidp/oauth/v1/nam/introspect" -H "Authorization: Basic <<client_ID:client_secert" -d "token=<<Your access token>>"
+```
+
+
 
 ## Tests
 -------
