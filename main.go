@@ -56,7 +56,7 @@ func main() {
 		fmt.Printf("Access token is not valid any more: %v\n", ok)
 	}
 
-	for i := 0; i < 0; i++ {
+	for i := 0; i < 5; i++ {
 		time.Sleep(2 * time.Second)
 		fmt.Printf("Varify JWT with public key updated at: %v. Pointer to key is %p\n", time.Unix(key.LastUpdate, 0), key)
 		if ok = jwt.VerifySignature(key); ok == nil {

@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/robfig/cron"
 )
 
 /*
@@ -63,13 +65,9 @@ func GetPublicKey() (*PublicKey, error) {
 // must be refactored to auto reload the key every hour in the background
 func init() {
 	loadKey(&myPublicKey)
-	go reload(&myPublicKey)
-}
-
-func reload(key *PublicKey) {
-	time.Sleep(reloadInterval * time.Second)
-	loadKey(key)
-	reload(key)
+	c := cron.New()
+	c.AddFunc("@every 2s", func() { loadKey(&myPublicKey) })
+	c.Start()
 }
 
 func loadKey(key *PublicKey) {
